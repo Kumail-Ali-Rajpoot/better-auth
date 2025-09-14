@@ -4,17 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
+import { authClient } from "@/lib/auth-client";
 const inter = Inter();
 const montserrat = Montserrat();
 
 export default function Home() {
 
   const router = useRouter();
+  const {data:session,isPending} = authClient.useSession();
 
+  if(isPending) {
+    return <p>Loading...</p>
+  }
+  if(session) {
+    router.push("/dashboard")
+  }
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); // prevent page reload
-
     // get form data
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -44,7 +50,6 @@ export default function Home() {
       alert("Error saving data!");
     }
   }
-
   return (
     <div className="flex flex-col justify-center items-center w-[100vw] h-[100vh] text-white bg-gray-900">
       <div className="flex gap-2 items-center">

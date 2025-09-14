@@ -1,10 +1,20 @@
 "use client";
 import { useState } from "react";
 import { signUpUser } from "@/server/auth";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
-
+    const router = useRouter();
+    const {data:session,isPending} = authClient.useSession();
+  
+    if(isPending) {
+      return <p>Loading...</p>
+    }
+    if(session) {
+      router.push("/dashboard")
+    }
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);

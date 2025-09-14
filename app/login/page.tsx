@@ -1,10 +1,20 @@
 "use client";
 import { useState } from "react";
 import { signInUser } from "@/server/auth";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
-
+    const router = useRouter();
+    const {data:session,isPending} = authClient.useSession();
+  
+    if(isPending) {
+      return <p>Loading...</p>
+    }
+    if(session) {
+      router.push("/dashboard")
+    }
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -13,8 +23,16 @@ export default function SignUpPage() {
     const password = formData.get("password") as string;
 
     try {
-      const res = await signInUser(email, password);
-      alert("Login successful! Check your trades.");
+      const res:any = await signInUser(email, password);
+      if(res.verified) {
+        alert("Login successful! Check your trades.");
+      }else {
+        await authClient.sendVerificationEmail({
+          email: email,
+          callbackURL: "/dashboard" // The redirect URL after verification
+      })
+      alert("Please check your email resend email verification")
+      }
       console.log(res);
     } catch (err) {
       console.error(err);
@@ -44,6 +62,7 @@ export default function SignUpPage() {
             required
             className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+          <button onClick={()=>router.push("/forgot-password")} className="underline text-white">forgot passwrd</button>
           <button
             type="submit"
             disabled={loading}
